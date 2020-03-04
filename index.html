@@ -34,6 +34,11 @@
 
   window.clef = "";
 
+  function isNumber(str) {
+      var pattern = /^\d+$/;
+      return pattern.test(str);  // returns a boolean
+    }
+
   function doRegister(){
     return new Promise(function (resolve, reject) {
       const pseudo = document.getElementById("pseudoA").value;
@@ -60,6 +65,11 @@
 
       if(pwd.length < 5){
         ons.notification.alert('Le mot de passe doit faire au moins 5 caratcères');
+        return;
+      }
+
+      if(!isNumber(poids)){
+        ons.notification.alert('Le poids doit être un nombre');
         return;
       }
 
@@ -95,16 +105,15 @@
       const json = {pseudo: pseudo, mdp: pwd};
       window.pseudo = pseudo;
 
-      console.log("poney");
+      const test = document.querySelector('#navigator').pages;
+      console.log(test);
+
+      console.log(json);
 
       var url = 'https://middle--philippeskopal.repl.co/login/'
       axios.post(url, json)
-      .then((response) => {
-
-        window.clef = response.data.clef;
-
+      .then((response) => { 
         resolve(response.data);
-        
       }, (error) => {
         console.log(error);
       });
@@ -268,10 +277,12 @@
         page.querySelector('#login-button').onclick = function() {
           doLogin().then(function(data){
               if(data.clef.length > 0){
+                window.clef = data.clef;
                 document.querySelector('#navigator').pushPage('conso.html');
                 refreshTaux();
               }else{
-                document.querySelector('#navigator').pushPage('login.html');
+                ons.notification.alert('Login ou mot de passe incorrect');
+                document.querySelector('#navigator').resetToPage('login.html');
               }
           });
         };
@@ -285,7 +296,7 @@
         page.querySelector('#doRegister-button').onclick = function() {
           doRegister().then(function(data){
               if(data.success === 0){
-                document.querySelector('#navigator').pushPage('login.html');
+                document.querySelector('#navigator').resetToPage('login.html');
               }else{
                 document.querySelector('#navigator').pushPage('register.html');
               }
@@ -302,6 +313,7 @@
         page.querySelector('#doLogout-button').onclick = function() {
             window.clef = "";
             window.pseudo = "";
+            document.querySelector('#navigator').resetToPage('login.html');
         };
 
         page.querySelector('#goProfile-button').onclick = function() {
@@ -419,7 +431,10 @@
     <ons-template id="conso.html">
     <ons-page id="conso-page">
       <ons-toolbar>
-        <ons-back-button id="doLogout-button" class="left">Déconnexion</ons-back-button>
+        <!-- <ons-back-button id="doLogout-button" class="left">Déconnexion</ons-back-button> -->
+        <div class="left">
+          <button class="button--quiet" id="doLogout-button"> Déconnexion </button>
+        </div>
         <div class="center"> Mes consos </div>
         <div class="right">
           <button class="button--quiet" id="goProfile-button"> Poivrofil > </button>
