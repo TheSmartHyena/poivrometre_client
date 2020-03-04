@@ -1,0 +1,592 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+
+  <script src="components/loader.js"></script>
+  <script src="lib/onsenui/js/onsenui.min.js"></script>
+
+  <link rel="stylesheet" href="components/loader.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Bootstrap -->
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+  <!-- jQuery library -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+  <!-- Popper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+  <!-- Latest compiled JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<script>
+
+  window.clef = "";
+
+  function doRegister(){
+    return new Promise(function (resolve, reject) {
+      const pseudo = document.getElementById("pseudoA").value;
+      const pwd = document.getElementById("myPasswordA").value;
+      const sexe = document.getElementById("sexe").value;
+      const poids = document.getElementById("weight").value;
+
+      const profilpublique = document.getElementById("profilpublique").value;
+      const jeuneconducteur = document.getElementById("jeuneconducteur").value;
+
+      const json = {
+        pseudo: pseudo,
+        mdp: pwd,
+        sexe: Boolean(sexe),
+        poids: parseFloat(poids),
+        publique: profilpublique,
+        cond_a: jeuneconducteur
+      }
+
+      if(pseudo.length < 3){
+        ons.notification.alert('Le pseudo doit faire au moins 3 caractères');
+        return;
+      }
+
+      if(pwd.length < 5){
+        ons.notification.alert('Le mot de passe doit faire au moins 5 caratcères');
+        return;
+      }
+
+      if(poids  <= 1){
+        ons.notification.alert('Le poids doit être supérieur à 1');
+        return;
+      }
+
+      // var url = "https://2mw0g.sse.codesandbox.io/register/";
+      var url = "https://middle--philippeskopal.repl.co/register/";
+      
+      axios.post(url, json)
+      .then((response) => {
+        if(response.data.success === 1){
+          ons.notification.alert('Erreur côté serveur');
+        }else if(response.data.success === 3){
+          ons.notification.alert('Le pseudo existe déjà');
+        }else{
+          resolve(response.data);
+        }
+      }, (error) => {
+        console.log(error);
+      });
+    })
+
+  }
+
+  function doLogin(){
+    return new Promise(function (resolve, reject) {
+      const pseudo = document.getElementById("pseudoB").value;
+      const pwd = document.getElementById("myPasswordB").value;
+
+      const json = {pseudo: pseudo, mdp: pwd};
+      window.pseudo = pseudo;
+
+      console.log("poney");
+
+      var url = 'https://middle--philippeskopal.repl.co/login/'
+      axios.post(url, json)
+      .then((response) => {
+
+        window.clef = response.data.clef;
+
+        resolve(response.data);
+        
+      }, (error) => {
+        console.log(error);
+      });
+
+
+     /* var url = "https://2mw0g.sse.codesandbox.io/login/";
+      var jqxhr = $.post(url, json, function(data) {
+        window.clef = data.clef;
+        resolve(data);
+      })*/
+    })
+  }
+
+  function getDeco(conso){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        pseudo: window.pseudo,
+        key: window.clef
+      }
+
+      var url = "https://middle--philippeskopal.repl.co/deco/";
+      axios.post(url, json)
+      .then((response) => {
+        console.log(response.data);
+        resolve(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+    })
+  }
+
+  function addConso(conso){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        id_boisson: 2,
+        key: window.clef
+      }
+
+      var url = "https://middle--philippeskopal.repl.co/conso/";
+      axios.post(url, json)
+      .then((response) => {
+        refreshTaux();
+        console.log(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+
+    })
+  }
+
+   function getTaux(conso){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        pseudo: window.pseudo,
+        key: window.clef
+      }
+
+      var url = "https://middle--philippeskopal.repl.co/getTaux/";
+      axios.post(url, json)
+      .then((response) => {
+        console.log(response.data);
+        resolve(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+    })
+  }
+
+  function getCanDrive(){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        pseudo: window.pseudo,
+        key: window.clef
+      }
+
+      console.log(json);
+
+      var url = "https://middle--philippeskopal.repl.co/getTemps/";
+      axios.post(url, json)
+      .then((response) => {
+        resolve(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+    })
+  }
+
+  var intervalID = window.setInterval(refreshTaux, 3000);
+
+  function refreshTaux(){
+    if(window.clef.length > 1){
+
+      getTaux().then(function(data){
+        document.getElementById("monTaux").innerText = data.taux.toFixed(2);
+        //document.getElementById("cancannotdrive").style.display = "block";
+      });
+
+      getCanDrive().then(function(data){
+        console.log(data);
+        if(data.temps !== "00h00" && data.temps !== "0h0"){
+          document.getElementById("cancannotdrive").style.display = "block";
+          document.getElementById("cancannotdriveTxt").innerText = "Vous pouvez rouler dans: " + data.temps;
+        }
+      });
+
+    }
+  }
+
+  function getProfile(){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        pseudo: window.pseudo,
+        key: window.clef
+      }
+
+      var url = "https://middle--philippeskopal.repl.co/profil/";
+      axios.post(url, json)
+      .then((response) => {
+        resolve(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+
+    })
+  }
+
+    function searchProfile(conso){
+    return new Promise(function (resolve, reject) {
+
+      const json = {
+        id_boisson: 2,
+        key: window.clef
+      }
+
+      var url = "https://middle--philippeskopal.repl.co/conso/";
+      axios.post(url, json)
+      .then((response) => {
+        refreshTaux();
+        console.log(response.data);
+      }, (error) => {
+        console.log(error);
+      });
+
+    })
+  }
+
+</script>
+
+  <script>
+    // Page init event
+    document.addEventListener('init', function(event) {
+      var page = event.target;
+
+      if (page.matches('#login-page')) {
+
+        page.querySelector('#login-button').onclick = function() {
+          doLogin().then(function(data){
+              if(data.clef.length > 0){
+                document.querySelector('#navigator').pushPage('conso.html');
+                refreshTaux();
+              }else{
+                document.querySelector('#navigator').pushPage('login.html');
+              }
+          });
+        };
+
+        page.querySelector('#register-button').onclick = function() {
+          document.querySelector('#navigator').pushPage('register.html');
+        };
+
+      } else if (page.matches('#register-page')) {
+
+        page.querySelector('#doRegister-button').onclick = function() {
+          doRegister().then(function(data){
+              if(data.success === 0){
+                document.querySelector('#navigator').pushPage('login.html');
+              }else{
+                document.querySelector('#navigator').pushPage('register.html');
+              }
+          });
+
+        };
+
+        page.querySelector('#doGoLogin-button').onclick = function() {           
+          document.querySelector('#navigator').pushPage('login.html');     
+        };
+
+      } else if (page.matches('#conso-page')) {
+
+        page.querySelector('#doLogout-button').onclick = function() {
+            window.clef = "";
+            window.pseudo = "";
+        };
+
+        page.querySelector('#goProfile-button').onclick = function() {
+            document.querySelector('#navigator').pushPage('profile.html');
+            getProfile().then(function(data){
+              console.log(data);
+              const table = data.result.split(":");
+              document.getElementById("pseudoProfil").innerText = window.pseudo;
+              document.getElementById("tauxActeulProfil").innerText = Number(table[0]).toFixed(2);
+              document.getElementById("tauxMaxProfil").innerText = Number(table[1]).toFixed(2);
+            });
+        };
+
+      }else if (page.matches('#profile-page')) {
+
+        page.querySelector('#goConso-button').onclick = function() {
+          document.querySelector('#navigator').pushPage('conso.html');
+        };
+
+        page.querySelector('#goSearch-button').onclick = function() {
+          document.querySelector('#navigator').pushPage('search.html');
+        };
+
+      }else if (page.matches('#search-page')) {
+
+        page.querySelector('#goProfile-button').onclick = function() {
+          document.querySelector('#navigator').pushPage('profile.html');
+        };
+
+      }
+
+    });
+
+    if (ons.platform.isIPhoneX()) {
+      document.documentElement.setAttribute('onsflag-iphonex-portrait', '');
+      document.documentElement.setAttribute('onsflag-iphonex-landscape', '');
+    }
+  </script>
+</head>
+<body>
+  <ons-navigator id="navigator" page="login.html"></ons-navigator>
+  <ons-template id="login.html">
+    <ons-page id="login-page">
+      <ons-toolbar>
+        <div class="center">Login</div>
+      </ons-toolbar>
+
+      <div class="content" style="text-align: center">
+        
+        <div class="form-group">
+          <label for="pseudoB">Pseudo:</label>
+          <input type="text" class="form-control" placeholder="Entre votre identifiant:" id="pseudoB">
+        </div>
+        <div class="form-group">
+          <label for="myPasswordB">Mot de passe:</label>
+          <input type="password" class="form-control" placeholder="Entrer votre mot de passe:" id="myPasswordB">
+        </div>
+
+        <ons-button id="login-button">Se connecter</ons-button>
+        <ons-button id="register-button">S'inscrire</ons-button>
+      </div>
+    </ons-page>
+  </ons-template>
+
+  <ons-template id="register.html">
+    <ons-page id="register-page">
+      <ons-toolbar>
+        <button class="button--quiet left" id="doGoLogin-button"> < Retour </button>
+        <div class="center"> Inscription </div>
+      </ons-toolbar>
+
+      <div class="content" style="text-align: center">
+        <div class="form-group">
+          <label for="pseudoA">Pseudo:</label>
+          <input type="text" class="form-control" placeholder="Entrer votre identifiant" id="pseudoA">
+        </div>
+        <div class="form-group">
+          <label for="myPasswordA">Mot de passe:</label>
+          <input type="password" class="form-control" placeholder="Entrer votre mot de passe:" id="myPasswordA">
+        </div>
+        <div class="form-group">
+          <label for="sexe">Sexe:</label>
+          <select class="form-control" id="sexe">
+              <option value="true">Homme</option>
+              <option value="false">Femme</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="weight">Poids:</label>
+          <input type="text" class="form-control" placeholder="Entrer votre poids:" id="weight">
+        </div>
+
+        <div class="form-group">
+          <label for="sexe">Jeune conducteur ?</label>
+          <select class="form-control" id="jeuneconducteur">
+              <option value="true">Oui</option>
+              <option value="false">Non</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="sexe">Profil publique ?</label>
+          <select class="form-control" id="profilpublique">
+              <option value="true">Oui</option>
+              <option value="false">Non</option>
+          </select>
+        </div>
+
+        <ons-button id="doRegister-button">S'inscrire</ons-button>
+      </div>
+    </ons-page>
+  </ons-template>
+
+    <ons-template id="conso.html">
+    <ons-page id="conso-page">
+      <ons-toolbar>
+        <ons-back-button id="doLogout-button" class="left">Déconnexion</ons-back-button>
+        <div class="center"> Mes consos </div>
+        <div class="right">
+          <button class="button--quiet" id="goProfile-button"> Poivrofil > </button>
+        </div>
+      </ons-toolbar>
+      <div class="content" style="text-align: center">
+        <ons-row>
+        <div class="card" style="width: 100%;">
+          <h2 class="card__title">Mon taux dans le sang: <span id="monTaux"> </span> </h2>
+          <div class="card__content">
+            gramme par litre de sang
+          </div>
+        </div>
+        </ons-row> 
+
+        <ons-row style="display: none;" id="cancannotdrive">
+          <div class="card" style="background-color: red;">
+            <div class="card__content">
+              <img style="width: 60px;" src="img/drunk.png" class="text-center">
+              <span id="cancannotdriveTxt"> </span>
+            </div>
+          </div>
+        </ons-row>
+
+      <ons-row>
+        <ons-list style="width: 100%;">
+          <ons-list-header>Ajout de consommations</ons-list-header>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/beer.png">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Bière 25cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(2);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/beer.png">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Bière 33cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(5);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/beer.png">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Bière 50cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(1);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/wine.png">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Vin 10cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(3);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/vodka.jpg">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Digestif 3cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(4);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          <ons-list-item modifier="nodivider">
+            <div class="left">
+              <img class="list-item__thumbnail" src="img/champ.png">
+            </div>
+            <div class="center">
+              <span class="list-item__title">Crémant 18cl</span>
+            </div>
+            <div class="right">
+              <button class="fab fab--mini" onclick="addConso(6);">
+                <i class="zmdi zmdi-plus"></i>
+              </button>
+            </div>
+          </ons-list-item>
+          </ons-list>
+      </ons-row>
+      </div>
+    </ons-page>
+  </ons-template>
+
+  <ons-template id="profile.html">
+    <ons-page id="profile-page">
+      <ons-toolbar>
+        <ons-back-button  class="left">Retour</ons-back-button>
+        <div class="center">Mon Poivrofile</div>
+        <!-- <button class="button--quiet right" id="goSearch-button"> Poivrofile > </button> -->
+      </ons-toolbar>
+
+      <div class="content" style="text-align: center">
+        
+      <ons-row>
+        <div class="card" style="width: 100%;">
+          <h2 class="card__title text-center">Pseudo: <span id="pseudoProfil"> </span> </h2>
+        </div>
+      </ons-row> 
+
+      <ons-row>
+        <div class="card" style="width: 100%;">
+          <h2 class="card__title text-center">Taux actuel: <span id="tauxActeulProfil"> </span> </h2>
+          <div class="card__content text-center">
+            gramme par litre de sang
+          </div>
+        </div>
+      </ons-row> 
+
+      <ons-row>
+        <div class="card" style="width: 100%;">
+          <h2 class="card__title text-center">Taux max: <span id="tauxMaxProfil"> </span> </h2>
+          <div class="card__content text-center">
+            gramme par litre de sang
+          </div>
+        </div>
+      </ons-row> 
+
+    </div>
+    </ons-page>
+  </ons-template>
+
+  <ons-template id="search.html">
+    <ons-page id="search-page">
+      <ons-toolbar>
+        <ons-back-button>Retour</ons-back-button>
+        <div class="center">Recherche poivrofile</div>
+      </ons-toolbar>
+
+      <div class="content" style="text-align: center">
+        
+        <div class="form-group">
+          <label for="name">Pseudo:</label>
+          <input type="text" class="form-control" placeholder="Entrez le nom" id="name">
+        </div>
+
+        <ons-button id="register-button">Chercher</ons-button>
+      </div>
+    </ons-page>
+  </ons-template>
+
+</body>
+</html>
